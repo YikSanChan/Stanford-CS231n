@@ -436,11 +436,11 @@ def max_pool_forward_naive(x, pool_param):
   out = np.zeros((N,C,h_out,w_out))
   for i in xrange(N):
     for j in xrange(C):
-      slice = x[i,j,:,:]
+      current_slice = x[i,j,:,:]
       max_pool_slice = np.zeros((h_out, w_out))
       for k in xrange(h_out):
         for l in xrange(w_out):
-          max_pool_slice[k,l] = np.max(slice[k*s:k*s+h, l*s:l*s+w])
+          max_pool_slice[k,l] = np.max(current_slice[k*s:k*s+h, l*s:l*s+w])
       out[i,j,:,:] = max_pool_slice
   #############################################################################
   #                             END OF YOUR CODE                              #
@@ -464,7 +464,23 @@ def max_pool_backward_naive(dout, cache):
   #############################################################################
   # TODO: Implement the max pooling backward pass                             #
   #############################################################################
-  pass
+  x, pool_param = cache
+  N,C,H,W = x.shape
+  h = pool_param["pool_height"]
+  w = pool_param["pool_width"]
+  s = pool_param["stride"]
+  h_out, w_out = dout.shape[2:]
+  dx = np.zeros(x.shape)
+  for i in xrange(N):
+    for j in xrange(C):
+      current_slice = x[i,j,:,:]
+      for k in xrange(h_out):
+        for l in xrange(w_out):
+          # print "i=%d,j=%d,k=%d,l=%d" % (i,j,k,l)
+          window = current_slice[k*s:k*s+h, l*s:l*s+w]
+          xaxis, yaxis = np.where(window == window.max())
+          xaxis, yaxis = xaxis[0], yaxis[0]
+          dx[i,j,k*s+xaxis,l*s+yaxis] = dout[i,j,k,l]
   #############################################################################
   #                             END OF YOUR CODE                              #
   #############################################################################
